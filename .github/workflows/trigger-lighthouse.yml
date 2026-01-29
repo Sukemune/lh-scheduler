@@ -1,0 +1,27 @@
+name: Trigger Lighthouse Monitoring
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 毎日UTC 0:00 = JST 9:00
+  workflow_dispatch:
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger private repository workflow
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token $GH_PAT" \
+            https://api.github.com/repos/Sukemune/lighthouse-performance-dashboard/actions/workflows/lighthouse.yml/dispatches \
+            -d '{"ref":"main"}'
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Successfully triggered Lighthouse workflow"
+          else
+            echo "❌ Failed to trigger workflow"
+            exit 1
+          fi
